@@ -54,7 +54,12 @@
         ground.material = new StandardMaterial("groundMat");
         ground.material.diffuseTexture = new Texture("res/gesaeuse_color_small.jpg");
 
+        alert("Click OK to load spruce tree (45 MB)");
+        const loadStart = performance.now();
         const spruce = SceneLoader.ImportMesh(null, "res/", "spruce.glb", scene, async (meshes) => {
+            const loadEnd = performance.now();
+            alert("Spruce tree (45 MB) loaded in " + (loadEnd - loadStart) + " ms");
+
             const parent = meshes[0];
             parent.isVisible = false;
             meshes = meshes[0].getChildren()[0].getChildren();
@@ -81,10 +86,19 @@
             //mesh.scaling = new Vector3(0.01, 0.01, 0.01);
             
             const matrices = [];
+
             let numTrees = NaN;
             while (isNaN(numTrees)) {
                 numTrees = parseInt(prompt("Number of trees", ""));
             }
+
+            let lod = NaN;
+            while(isNaN(lod) || lod < 0 || lod > 3) {
+                lod = parseInt(prompt("LOD (0=high-detail, 1=medium-detail, 2=low-detail, 3=billboards)", ""));
+            }
+            const lods = [lod0, lod1, lod2, lod3];
+            const mesh = lods[lod];
+
             for (let i = 0; i < numTrees; ++i) {
                 //const instance = mesh.createInstance("spruce" + i);
 
@@ -101,7 +115,7 @@
                 matrices.push(matrix);
             }
             
-            lod3.thinInstanceAdd(matrices);
+            mesh.thinInstanceAdd(matrices);
         });
 
         const camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, Vector3.Zero());
