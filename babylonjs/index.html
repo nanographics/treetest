@@ -81,7 +81,9 @@
             //mesh.scaling = new Vector3(0.01, 0.01, 0.01);
             
             const matrices = [];
-            for (let i = 0; i < 10000; ++i) {
+            const numTrees = 10000;
+            alert("Number of trees: " + numTrees);
+            for (let i = 0; i < numTrees; ++i) {
                 //const instance = mesh.createInstance("spruce" + i);
 
                 const x01 = Math.random();
