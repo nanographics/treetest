@@ -44,19 +44,18 @@
 
         const groundWidth = 20;
         const groundHeight = 20;
-        const displacement = 8;
 
-        const heightTexture = new Texture("res/gesaeuse_height_medium.png");
+        const heightTexture = new Texture("../assets/gesaeuse_height_medium.png");
 
-        const ground = MeshBuilder.CreateGroundFromHeightMap("ground", "res/gesaeuse_height_medium.png", {
+        const ground = MeshBuilder.CreateGroundFromHeightMap("ground", "../assets/gesaeuse_height_medium.png", {
             width: groundWidth, height: groundHeight, subdivisions: 250, maxHeight: 0, minHeight: 0,
         });
         ground.material = new StandardMaterial("groundMat");
-        ground.material.diffuseTexture = new Texture("res/gesaeuse_color_small.jpg");
+        ground.material.diffuseTexture = new Texture("../assets/gesaeuse_color_small.jpg");
 
         alert("Click OK to load spruce tree (45 MB)");
         const loadStart = performance.now();
-        const spruce = SceneLoader.ImportMesh(null, "res/", "spruce.glb", scene, async (meshes) => {
+        const spruce = SceneLoader.ImportMesh(null, "../assets/", "spruce.glb", scene, async (meshes) => {
             const loadEnd = performance.now();
             alert("Spruce tree (45 MB) loaded in " + (loadEnd - loadStart) + " ms");
 
@@ -70,7 +69,7 @@
             const lod3 = meshes[0]; // Billboard
 
             const scale = 0.01;
-            const scaleInv = 3 / scale;
+            const scaleInv = 1 / scale;
             for (const mesh of parent.getChildMeshes()) {
                 mesh.scaling = new Vector3(scale, scale, scale);
                 mesh.isVisible = false;
@@ -109,7 +108,7 @@
                 //const matrixTranslation = Matrix.Translation(groundWidth * (x01 * 2 - 1), 0, groundHeight * (z01 * 2 - 1));
                 //const matrixScaling = new Matrix.Scaling(scale, scale, scale);
                 //const matrix = matrixScaling.multiply(matrixTranslation);
-                const matrix = Matrix.Translation(groundWidth/2 * (x01 * 2 - 1) * scaleInv, y01, groundHeight/2 * (z01 * 2 - 1) * scaleInv);
+                const matrix = Matrix.Translation(groundWidth/2 * (x01 * 2 - 1) * scaleInv * 3, y01, groundHeight/2 * (z01 * 2 - 1) * scaleInv * 3); // TODO: Why *3?
 
                 //const index = lod3.thinInstanceAddSelf(matrix);
                 matrices.push(matrix);
@@ -124,7 +123,6 @@
 
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());
-
     </script>
   </body>
 </html>
