@@ -75,7 +75,6 @@
                 mesh.scaling = new Vector3(scale, scale, scale);
                 mesh.isVisible = false;
             }
-            lod3.isVisible = true;
 
             for (const mesh of meshes) {
                 mesh.setParent(null);
@@ -98,6 +97,7 @@
             }
             const lods = [lod0, lod1, lod2, lod3];
             const mesh = lods[lod];
+            mesh.isVisible = true;
 
             for (let i = 0; i < numTrees; ++i) {
                 //const instance = mesh.createInstance("spruce" + i);
