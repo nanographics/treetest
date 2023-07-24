@@ -81,8 +81,10 @@
             //mesh.scaling = new Vector3(0.01, 0.01, 0.01);
             
             const matrices = [];
-            const numTrees = 10000;
-            alert("Number of trees: " + numTrees);
+            let numTrees = NaN;
+            while (isNaN(numTrees)) {
+                numTrees = parseInt(prompt("Number of trees", ""));
+            }
             for (let i = 0; i < numTrees; ++i) {
                 //const instance = mesh.createInstance("spruce" + i);
 
