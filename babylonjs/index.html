@@ -15,9 +15,16 @@
             width: 100%;
             height: 100%;
         }
+        #fps {
+            position:fixed;
+            top: 0;
+            left: 0;
+            background: #ffffff88;
+        }
     </style>
   </head>
   <body>
+    <div id="fps"></div>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script>
@@ -38,7 +45,7 @@
         const engine = new Engine(canvas, true);
 
         const scene = new Scene();
-        //scene.debugLayer.show();
+        scene.debugLayer.show();
 
         //MeshBuilder.CreateBox("box", {});
 
@@ -86,7 +93,7 @@
             const matrices = [];
 
             let numTrees = NaN;
-            while (isNaN(numTrees)) {
+            while (isNaN(numTrees) || numTrees < 0) {
                 numTrees = parseInt(prompt("Number of trees", ""));
             }
 
@@ -121,7 +128,11 @@
         camera.attachControl(canvas, true);
         const light = new HemisphericLight("light", new Vector3(1, 1, 0));
 
-        engine.runRenderLoop(() => scene.render());
+        const fps = document.getElementById("fps");
+        engine.runRenderLoop(() => {
+            fps.textContent = engine.getFps().toFixed() + " fps";
+            scene.render()
+        });
         window.addEventListener("resize", () => engine.resize());
     </script>
   </body>

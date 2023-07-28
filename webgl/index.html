@@ -18,35 +18,8 @@
     </style>
   </head>
   <body>
-    <div id="fps"></div>
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.154.0/three.module.js"
-            }
-        }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.9.1/math.min.js"></script>
     <script type="module">
-        import * as THREE from "three";
-        import { GLTFLoader } from "https://unpkg.com/three@0.154.0/examples/jsm/loaders/GLTFLoader.js";
-        import { OrbitControls } from "https://unpkg.com/three@0.154.0/examples/jsm/controls/OrbitControls.js";
-        import Stats from "https://unpkg.com/three@0.154.0/examples/jsm/libs/stats.module.js";
-
-        const Scene = THREE.Scene;
-        const PerspectiveCamera = THREE.PerspectiveCamera;
-        const BoxGeometry = THREE.BoxGeometry;
-        const PlaneGeometry = THREE.PlaneGeometry;
-        const MeshStandardMaterial = THREE.MeshStandardMaterial;
-        const Mesh = THREE.Mesh;
-        const Color = THREE.Color;
-        const AmbientLight = THREE.AmbientLight;
-        const DirectionalLight = THREE.DirectionalLight;
-        const Clock = THREE.Clock;
-        const WebGLRenderer = THREE.WebGLRenderer;
-        const TextureLoader = THREE.TextureLoader;
-        const InstancedMesh = THREE.InstancedMesh;
-        const Vector3 = THREE.Vector3;
-        const Matrix4 = THREE.Matrix4;
 
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
@@ -136,10 +109,6 @@
 
         const clock = new Clock();
 
-        const stats = new Stats();
-        stats.showPanel(0);
-        document.body.appendChild(stats.dom);
-
         const renderer = new WebGLRenderer({ canvas });
         renderer.setAnimationLoop(() => {
             const deltaTime = clock.getDelta();
@@ -150,9 +119,7 @@
             //cube.rotation.y += (0.2 * deltaTime);
             //cube.rotation.z += (0.3 * deltaTime);
 
-            stats.begin();
             renderer.render(scene, camera);
-            stats.end();
         });
         
         const resize = () => {
