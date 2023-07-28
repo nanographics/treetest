@@ -14,14 +14,80 @@
     </style>
   </head>
   <body>
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"> </script>
+    <canvas id="chart"></canvas>
+
     <script>
+        const xValues = [];
+        const yValues_elapsedMs = [];
+        const yValues_avgElapsedMs = [];
+        const chart = new Chart("chart", {
+          type: "line",
+          data: {
+            labels: xValues,
+            datasets: [
+              {
+                fill: false,
+                label: "Elapsed Time (ms)",
+                data: yValues_elapsedMs,
+                borderColor: "red"
+              },
+              {
+                fill: false,
+                label: "Average Elapsed Time (ms)",
+                data: yValues_avgElapsedMs,
+                borderColor: "blue"
+              }
+            ]
+          },
+          options: {
+            legend: { display: true },
+            responsive: true,
+            maintainAspectRatio: false,
+          }
+        });
+        let yValues_sum = 0;
+        let yValues_avg = null;
+        const appendToChart = (elapsedMs) => {
+          yValues_sum += elapsedMs;
+          yValues_avg = yValues_sum / xValues.length;
+
+          xValues.push(xValues.length + 1);
+          yValues_elapsedMs.push(elapsedMs);
+          yValues_avgElapsedMs.push(yValues_avg);
+
+          chart.update();
+        }
+
+        const howMany = 100;
+        let messageId = 0;
+        const message = "spruce.glb";
+        let start = null;
+        const sendMessage = () => {
+            start = performance.now();
+            socket.send(message);
+        };
+
+        
         const socket = new WebSocket("ws://localhost:8080");
         socket.addEventListener("open", (event) => {
-            socket.send("Hello Server!");
+          sendMessage();
         });
-        socket.addEventListener("message", (event) => {
-            console.log(event.data);
+        socket.addEventListener("message", (message) => {
+          const end = performance.now();
+          const elapsed = end - start;
+
+          //console.log(`Model ${messageId} took ${elapsed} ms to be transferred from server to client.`);
+          appendToChart(elapsed);
+
+          if (messageId++ === howMany) {
+            return;
+          }
+          sendMessage();
         });
+
     </script>
   </body>
 </html>
