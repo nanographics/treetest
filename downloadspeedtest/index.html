@@ -79,13 +79,14 @@
           const end = performance.now();
           const elapsed = end - start;
 
-          //console.log(`Model ${messageId} took ${elapsed} ms to be transferred from server to client.`);
-          appendToChart(elapsed);
-
-          if (messageId++ === howMany) {
-            return;
+          if (messageId < howMany) {
+            //console.log(`Model ${messageId} took ${elapsed} ms to be transferred from server to client.`);
+            appendToChart(elapsed);
           }
-          sendMessage();
+
+          if (messaegId++ < howMany) {
+            sendMessage();
+          }
         });
 
     </script>
