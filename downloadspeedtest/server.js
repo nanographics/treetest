@@ -2,7 +2,9 @@ const WebSocketServer = require("ws").WebSocketServer;
 const fs = require("fs");
 const path = require("path");
 
-const wss = new WebSocketServer({ port: 8080 });
+const port = 8080;
+
+const wss = new WebSocketServer({ port });
 
 const exists = async (file) => {
     try {
@@ -23,6 +25,7 @@ const isReadable = async (file) => {
 };
 
 wss.on("connection", (ws) => {
+    console.log("Server running on port " + port);
     ws.on("message", async (message) => {
         console.log(`Received message => ${message}`);
 

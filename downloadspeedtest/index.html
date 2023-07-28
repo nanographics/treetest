@@ -69,9 +69,11 @@
             start = performance.now();
             socket.send(message);
         };
-
         
         const socket = new WebSocket("ws://localhost:8080");
+        socket.onerror = () => {
+          alert("Error connecting to server. Please make sure the server is running.");
+        };
         socket.addEventListener("open", (event) => {
           sendMessage();
         });
