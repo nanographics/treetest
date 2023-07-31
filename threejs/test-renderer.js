@@ -94,22 +94,23 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
         const originalMesh = lods[lod];
 
         const mesh = new InstancedMesh(originalMesh.geometry, originalMesh.material, numTrees);
+        
+        while (treePositions.length < numTrees) {
+            const x01 = Math.random();
+            const z01 = Math.random();
+            const y01 = 0;
+
+            const x = groundWidth/2 * (x01 * 2 - 1);
+            const y = y01;
+            const z = groundHeight/2 * (z01 * 2 - 1);
+
+            treePositions.push({ x, y, z });
+        }
 
         for (let i = 0; i < numTrees; ++i) {
-            let x, y, z;
-            if (i < treePositions.length) {
-                x = treePositions[i].x - groundWidth/2;
-                y = (treePositions[i].y * (groundElevationMax - groundElevationMin)) + groundElevationMin;
-                z = treePositions[i].z - groundHeight/2;
-            } else {
-                const x01 = Math.random();
-                const z01 = Math.random();
-                const y01 = 0;
-
-                x = groundWidth/2 * (x01 * 2 - 1);
-                y = y01;
-                z = groundHeight/2 * (z01 * 2 - 1);
-            }
+            const x = treePositions[i].x - groundWidth/2;
+            const y = (treePositions[i].y * (groundElevationMax - groundElevationMin)) + groundElevationMin;
+            const z = treePositions[i].z - groundHeight/2;
             const matrixTranslation = new Matrix4().makeTranslation(x, y, z);
             const matrixScale = new Matrix4().makeScale(scale, scale, scale);
             const matrix = matrixScale.clone().premultiply(matrixTranslation);

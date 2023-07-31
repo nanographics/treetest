@@ -27,11 +27,13 @@ export function run(showInspector = false, showLoadingDialogs = true, autoResize
 
     const groundWidth = 3000;
     const groundHeight = 3000;
+    const groundElevationMin = 0;
+    const groundElevationMax = 500;
 
-    const heightTexture = new Texture("../assets/gesaeuse_height_medium.png");
+    //const heightTexture = new Texture("../assets/gesaeuse_height_medium.png");
 
     const ground = MeshBuilder.CreateGroundFromHeightMap("ground", "../assets/gesaeuse_height_medium.png", {
-        width: groundWidth, height: groundHeight, subdivisions: 250, maxHeight: 0, minHeight: 0,
+        width: groundWidth, height: groundHeight, subdivisions: 250, maxHeight: groundElevationMax, minHeight: groundElevationMin,
     });
     ground.material = new StandardMaterial("groundMat");
     ground.material.diffuseTexture = new Texture("../assets/gesaeuse_color_small.jpg");
@@ -79,24 +81,28 @@ export function run(showInspector = false, showLoadingDialogs = true, autoResize
         const mesh = lods[lod];
         mesh.isVisible = true;
 
+        while (treePositions.length < numTrees) {
+            const x01 = Math.random();
+            const z01 = Math.random();
+            const y01 = 0;
+
+            const x = groundWidth/2 * (x01 * 2 - 1);
+            const y = y01;
+            const z = groundHeight/2 * (z01 * 2 - 1);
+
+            treePositions.push({ x, y, z });
+        }
+
         for (let i = 0; i < numTrees; ++i) {
-            let x, y, z;
-            if (i < treePositions.length) {
-                x = treePositions[i].x - groundWidth/2;
-                y = treePositions[i].y;
-                z = treePositions[i].z - groundHeight/2;
-            } else {
-                const x01 = Math.random();
-                const z01 = Math.random();
-                const y01 = 0;
+            let x = treePositions[i].x - groundWidth/2;
+            let y = (treePositions[i].y * (groundElevationMax - groundElevationMin)) + groundElevationMin;
+            let z = treePositions[i].z - groundHeight/2;
 
-                x = groundWidth/2 * (x01 * 2 - 1);
-                y = y01;
-                z = groundHeight/2 * (z01 * 2 - 1);
-            }
+            const wtf = 3.28; // Todo: Wtf?
 
-            x *= scaleInv * 3; // TODO: Why *3?
-            z *= scaleInv * 3; // TODO: Why *3?
+            x *= -1 * scaleInv * wtf;
+            y *= scaleInv * wtf;
+            z *= -1 * scaleInv * wtf;
 
             const matrix = Matrix.Translation(x, y, z);
 
