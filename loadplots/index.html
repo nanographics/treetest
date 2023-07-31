@@ -3,12 +3,84 @@
   <head>
     <meta charset="utf-8" />
     <title>TreeVis Load Plots Test</title>
+    <style>
+        html, body {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            padding: 1em;
+        }
+        body > * {
+            flex-grow: 0;
+        }
+        #renderers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            flex-grow: 1;
+            border-top: 1px solid black;
+        }
+        .renderer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .renderer > * {
+            flex-grow: 0;
+        }
+        .renderer > canvas {
+            flex-grow: 1;
+            padding: 0.5em;
+        }
+    </style>
   </head>
   <body>
-    <p>See console for loaded plots</p>
+
+    <p>See console for details</p>
+
+    <p id="loading">Loading...</p>
+    <div id="renderers">
+        <div id="threejs-renderer" class="renderer">
+            <p>Three.js</p>
+            <button id="threejs-button">Launch</button>
+        </div>
+        <div id="babylonjs-renderer" class="renderer">
+            <p>Babylon.js</p>
+            <button id="babylonjs-button">Launch</button>
+        </div>
+    </div>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.154.0/three.module.js"
+            }
+        }
+    </script>
+    
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
     <script type="module">
         import { Tree, Plot, PlotsSet } from './loadplots.js';
         import { TreePlacer } from './treeplacer.js';
+
+        import * as THREE_RENDERER from "../threejs/test-renderer.js";
+        import * as BABYLON_RENDERER from "../babylonjs/test-renderer.js";
+
+        const loading = document.getElementById("loading");
+        const renderers = document.getElementById("renderers");
+
+        renderers.style.display = "none";
+
         (async () => {
             const csv = await fetch("../data/Single_tree_data_WG1.csv").then(response => response.text());
             const plots = new PlotsSet(csv);
@@ -82,6 +154,33 @@
             }
 
             console.log(treePositions.length + " trees generated");
+
+            // Activate UI
+            {
+                loading.style.display = "none";
+                renderers.style.display = "";
+
+                const numTrees = 10000;
+                const lod = 3;
+
+                const threejsButton = document.getElementById("threejs-button");
+                threejsButton.addEventListener("click", () => {
+                    const canvas = THREE_RENDERER.run(false, false, numTrees, lod);
+                    const renderer = document.getElementById("threejs-renderer");
+                    renderer.appendChild(canvas);
+                    THREE_RENDERER.resize();
+                    threejsButton.style.display = "none";
+                });
+
+                const babylonjsButton = document.getElementById("babylonjs-button");
+                babylonjsButton.addEventListener("click", () => {
+                    const canvas = BABYLON_RENDERER.run(false, false, false, numTrees, lod);
+                    const renderer = document.getElementById("babylonjs-renderer");
+                    renderer.appendChild(canvas);
+                    BABYLON_RENDERER.resize();
+                    babylonjsButton.style.display = "none";
+                });
+            }
 
         })();
     </script>

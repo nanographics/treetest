@@ -138,6 +138,6 @@ export class PlotsSet {
     }
 
     getPlot(plotNumber, year) {
-
+        return this.plotYears.get(plotNumber).get(year);
     }
 }
