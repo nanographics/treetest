@@ -32,7 +32,7 @@ export class TreePlacer {
         return this.widthMeters * this.heightMeters;
     }
 
-    get areInHectares() {
+    get areaInHectares() {
         return this.areaInSquareMeters / 10000;
     }
 
@@ -55,31 +55,41 @@ export class TreePlacer {
 
         const plot = plotsSet.plotYears.get(plotNumbers[0]).get(year);
 
-        console.log("Terrain area in hectares:", this.areInHectares);
+        console.log("Terrain area in hectares:", this.areaInHectares);
 
         let totalTreeCount = 0;
         for (const tree of plot.trees) {
-            totalTreeCount += Math.round(tree.countPerHectare * this.areInHectares);
+            totalTreeCount += Math.round(tree.countPerHectare * this.areaInHectares);
         }
 
+        //const positions = bluenoise(this.widthMeters, this.heightMeters, totalTreeCount);
         const positions = bluenoise(this.widthMeters, this.heightMeters, totalTreeCount);
+        const treeCountMultiplier = positions.length / totalTreeCount;
+        if (treeCountMultiplier < 1) {
+            console.warn("Not enough space for all " + totalTreeCount + " trees. Reducing tree count by " + ((1 - treeCountMultiplier) * 100).toFixed(2) + "% to at most " + positions.length + " trees.");
+        } else if (treeCountMultiplier > 1) {
+            console.warn("More than enough space for all " + totalTreeCount + " trees. Increasing tree count by " + ((treeCountMultiplier - 1) * 100).toFixed(2) + "% to at most " + positions.length + " trees.");
+        }
 
+        let positionIndex = 0;
         for (const tree of plot.trees) {
 
-            const treeCount = Math.round(tree.countPerHectare * this.areInHectares);
+            const treeCount = Math.floor(tree.countPerHectare * this.areaInHectares * treeCountMultiplier);
 
             console.log(tree.speciesEnglish, treeCount, tree);
 
             for (let i = 0; i < treeCount; i++) {
                     
-                    const x = positions[i][0];//Math.random();
-                    const z = positions[i][1];//Math.random();
-                    const y = this.sampleHeightIn01(x, z);
+                    const x = positions[positionIndex][0];//Math.random();
+                    const z = positions[positionIndex][1];//Math.random();
+                    const y = this.sampleHeightInMeters(x, z);
+
+                    ++positionIndex;
 
                     positionsOutput.push({
-                        x: x * this.widthMeters,
+                        x: x,
                         y: y,
-                        z: z * this.heightMeters
+                        z: z
                     });
 
             }
