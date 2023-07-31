@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TreeVis Load Plots Test</title>
+  </head>
+  <body>
+    <p>See console for loaded plots</p>
+    <script type="module">
+        import { Tree, Plot, PlotsSet } from './loadplots.js';
+        import { TreePlacer } from './treeplacer.js';
+        (async () => {
+            const csv = await fetch("../data/Single_tree_data_WG1.csv").then(response => response.text());
+            const plots = new PlotsSet(csv);
+            console.log(plots);
+
+            let heightmap;
+            let heightmapData;
+            {
+
+                const start = performance.now();
+
+                const heightmapBlob = await fetch("../assets/gesaeuse_height_medium.png").then(response => response.blob());
+                heightmap = await createImageBitmap(heightmapBlob);
+                //heightmapData = new Uint8Array(heightmap.width * heightmap.height);
+
+                const canvas = document.createElement("canvas");
+                canvas.width = heightmap.width;
+                canvas.height = heightmap.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(heightmap, 0, 0);
+                const imageData = ctx.getImageData(0, 0, heightmap.width, heightmap.height);
+                heightmapData = new Uint8Array(imageData.data.buffer);
+                let minHeight = Number.MAX_VALUE;
+                let maxHeight = Number.MIN_VALUE;
+                for (let i = 0; i < heightmapData.length; i += 4) {
+                    const height = heightmapData[i] / 255;
+                    new Float32Array(heightmapData.buffer, i, 1).set([height]);
+
+                    minHeight = Math.min(minHeight, height);
+                    maxHeight = Math.max(maxHeight, height);
+                }
+
+                const end = performance.now();
+                console.log("Loading heightmap took " + (end - start) + " ms");
+
+                const heights = [];
+                for (let i = 0; i < 10; i++) {
+                    const height = new Float32Array(heightmapData.buffer, i * 4, 1)[0];
+                    heights.push(height);
+                }
+                console.log("Printing first 10 values of heightmapData: " + heights.join(", "));
+                console.log("minHeight: " + minHeight + ", maxHeight: " + maxHeight);
+            }
+            //console.log(heightmapData);
+
+            const widthMeters = 3000;
+            const heightMeters = 3000;
+            const treePlacer = new TreePlacer(heightmapData, heightmap.width, heightmap.height, widthMeters, heightMeters);
+            {
+                const heights = [];
+                for (let i = 0; i < 10; i++) {
+                    const height = treePlacer.float(i * treePlacer.ux + treePlacer.ux/2, treePlacer.uy/2);
+                    heights.push(height);
+                }
+                console.log("Printing first 10 values of TreePlacer: " + heights.join(", "));
+            }
+
+            // Generate trees
+            let treePositions;
+            {
+                const plotsForTreeGeneration = [
+                    plots.plotYears.entries().next().value[1]
+                ];
+
+                const year =
+                    plotsForTreeGeneration[0].entries().next().value[0];
+
+                const plotNumbers = plotsForTreeGeneration.map(plot => plot.get(year).number);
+
+                treePositions = treePlacer.placeTreesForSingleYear(plots, plotNumbers, year);
+            }
+
+            console.log(treePositions.length + " trees generated");
+
+        })();
+    </script>
+  </body>
+</html>
