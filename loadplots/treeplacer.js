@@ -1,3 +1,5 @@
+import bluenoise from "../bluenoise/bluenoise.js";
+
 export class TreePlacer {
     constructor(heightDataUin8, widthPixels, heightPixels, widthMeters, heightMeters) {
         this.heightDataUin8 = heightDataUin8;
@@ -55,6 +57,13 @@ export class TreePlacer {
 
         console.log("Terrain area in hectares:", this.areInHectares);
 
+        let totalTreeCount = 0;
+        for (const tree of plot.trees) {
+            totalTreeCount += Math.round(tree.countPerHectare * this.areInHectares);
+        }
+
+        const positions = bluenoise(this.widthMeters, this.heightMeters, totalTreeCount);
+
         for (const tree of plot.trees) {
 
             const treeCount = Math.round(tree.countPerHectare * this.areInHectares);
@@ -63,8 +72,8 @@ export class TreePlacer {
 
             for (let i = 0; i < treeCount; i++) {
                     
-                    const x = Math.random();
-                    const z = Math.random();
+                    const x = positions[i][0];//Math.random();
+                    const z = positions[i][1];//Math.random();
                     const y = this.sampleHeightIn01(x, z);
 
                     positionsOutput.push({
