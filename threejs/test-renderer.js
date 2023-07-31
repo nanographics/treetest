@@ -29,33 +29,35 @@ export function resize() {
     renderer.setSize(canvas.parentNode.clientWidth, canvas.parentNode.clientHeight);
 };
 
-export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN, lod = NaN) {
+export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN, lod = NaN, treePositions = []) {
     canvas = document.createElement("canvas");
 
     const scene = new Scene();
 
     scene.background = new Color("skyblue");
 
-    const fov = 35;
+    const fov = 45;
     const aspect = 1;//canvas.clientWidth / canvas.clientHeight;
-    const near = 0.1;
-    const far = 100;
+    const near = 1;
+    const far = 10000;
 
     camera = new PerspectiveCamera(fov, aspect, near, far);
 
-    camera.position.set(0, 0, 10);
+    camera.position.set(0, 1500, 3000);
 
     //const geometry = new BoxGeometry(2, 2, 2);
     //const material = new MeshStandardMaterial({ color: 0xbbbbbb });
     //const cube = new Mesh(geometry, material);
     //scene.add(cube);
 
-    const groundWidth = 20;
-    const groundHeight = 20;
+    const groundWidth = 3000;
+    const groundHeight = 3000;
+    const groundElevationMin = 0;
+    const groundElevationMax = 500;
 
     const colorMap = new TextureLoader().load("../assets/gesaeuse_color_small.jpg");
     const heightMap = new TextureLoader().load("../assets/gesaeuse_height_medium.png");
-    const material = new MeshStandardMaterial({ map: colorMap, displacementMap: heightMap, displacementScale: 1 });
+    const material = new MeshStandardMaterial({ map: colorMap, displacementMap: heightMap, displacementScale: groundElevationMax - groundElevationMin, displacementBias: groundElevationMin });
     const ground = new Mesh(new PlaneGeometry(groundWidth, groundHeight, 250, 250), material);
     ground.rotateX(-Math.PI / 2);
     scene.add(ground);
@@ -86,17 +88,29 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
         const lod3 = children[0]; // Billboards
         const lods = [lod0, lod1, lod2, lod3];
 
-        const scale = 0.0033333;
+        const scale = 0.25;
         const scaleInv = 1 / scale;
 
         const originalMesh = lods[lod];
 
         const mesh = new InstancedMesh(originalMesh.geometry, originalMesh.material, numTrees);
+
         for (let i = 0; i < numTrees; ++i) {
-            const x01 = Math.random();
-            const z01 = Math.random();
-            const y01 = 0;
-            const matrixTranslation = new Matrix4().makeTranslation(groundWidth/2 * (x01 * 2 - 1), y01, groundHeight/2 * (z01 * 2 - 1));
+            let x, y, z;
+            if (i < treePositions.length) {
+                x = treePositions[i].x - groundWidth/2;
+                y = (treePositions[i].y * (groundElevationMax - groundElevationMin)) + groundElevationMin;
+                z = treePositions[i].z - groundHeight/2;
+            } else {
+                const x01 = Math.random();
+                const z01 = Math.random();
+                const y01 = 0;
+
+                x = groundWidth/2 * (x01 * 2 - 1);
+                y = y01;
+                z = groundHeight/2 * (z01 * 2 - 1);
+            }
+            const matrixTranslation = new Matrix4().makeTranslation(x, y, z);
             const matrixScale = new Matrix4().makeScale(scale, scale, scale);
             const matrix = matrixScale.clone().premultiply(matrixTranslation);
             mesh.setMatrixAt(i, matrix);

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>TreeVis Blue Noise Test</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        canvas {
+          display: inline-block;
+          width: 44%;
+          height: 80%;
+          padding: 2.5% 2.5%;
+          margin: 0;
+        }
+        #chartWhiteNoise {
+          background: lightgrey;
+        }
+        #chartBlueNoise {
+          background: skyblue;
+        }
+    </style>
+  </head>
+  <body>
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"> </script>
+    <canvas id="chartWhiteNoise"></canvas>
+    <canvas id="chartBlueNoise"></canvas>
+
+    <script type="module">
+
+      import blueNoise from "./blueNoise.js";
+
+      /*const xValues = [];
+      const yValues_elapsedMs = [];
+      const yValues_avgElapsedMs = [];
+      const chart = new Chart("chart", {
+        type: "line",
+        data: {
+          labels: xValues,
+          datasets: [
+            {
+              fill: false,
+              label: "Elapsed Time (ms)",
+              data: yValues_elapsedMs,
+              borderColor: "red"
+            },
+            {
+              fill: false,
+              label: "Average Elapsed Time (ms)",
+              data: yValues_avgElapsedMs,
+              borderColor: "blue"
+            }
+          ]
+        },
+        options: {
+          legend: { display: true },
+          responsive: true,
+          maintainAspectRatio: false,
+        }
+      });
+      let yValues_sum = 0;
+      let yValues_avg = null;
+      const appendToChart = (elapsedMs) => {
+        yValues_sum += elapsedMs;
+        yValues_avg = yValues_sum / xValues.length;
+
+        xValues.push(xValues.length + 1);
+        yValues_elapsedMs.push(elapsedMs);
+        yValues_avgElapsedMs.push(yValues_avg);
+
+        chart.update();
+      }
+
+      const howMany = 100;
+      let messageId = 0;
+      const message = "spruce.glb";
+      let start = null;
+      const sendMessage = () => {
+          start = performance.now();
+          socket.send(message);
+      };
+      
+      const socket = new WebSocket("ws://localhost:8080");
+      socket.onerror = () => {
+        alert("Error connecting to server. Please make sure the server is running.");
+      };
+      socket.addEventListener("open", (event) => {
+        sendMessage();
+      });
+      socket.addEventListener("message", (message) => {
+        const end = performance.now();
+        const elapsed = end - start;
+
+        if (messageId < howMany) {
+          //console.log(`Model ${messageId} took ${elapsed} ms to be transferred from server to client.`);
+          appendToChart(elapsed);
+        }
+
+        if (messageId++ < howMany) {
+          sendMessage();
+        }
+      });*/
+
+    </script>
+  </body>
+</html>

@@ -46,7 +46,7 @@
 
     <p>See console for details</p>
 
-    <p id="loading">Loading...</p>
+    <p id="details">Loading...</p>
     <div id="renderers">
         <div id="threejs-renderer" class="renderer">
             <p>Three.js</p>
@@ -76,7 +76,7 @@
         import * as THREE_RENDERER from "../threejs/test-renderer.js";
         import * as BABYLON_RENDERER from "../babylonjs/test-renderer.js";
 
-        const loading = document.getElementById("loading");
+        const details = document.getElementById("details");
         const renderers = document.getElementById("renderers");
 
         renderers.style.display = "none";
@@ -153,11 +153,11 @@
                 treePositions = treePlacer.placeTreesForSingleYear(plots, plotNumbers, year);
             }
 
-            console.log(treePositions.length + " trees generated");
+            console.log("Tree positions generated: ", treePositions);
 
             // Activate UI
             {
-                loading.style.display = "none";
+                details.textContent = "Generated " + treePositions.length + " trees";
                 renderers.style.display = "";
 
                 const numTrees = 10000;
@@ -165,7 +165,7 @@
 
                 const threejsButton = document.getElementById("threejs-button");
                 threejsButton.addEventListener("click", () => {
-                    const canvas = THREE_RENDERER.run(false, false, numTrees, lod);
+                    const canvas = THREE_RENDERER.run(false, false, treePositions.length, lod, treePositions);
                     const renderer = document.getElementById("threejs-renderer");
                     renderer.appendChild(canvas);
                     THREE_RENDERER.resize();
@@ -174,7 +174,7 @@
 
                 const babylonjsButton = document.getElementById("babylonjs-button");
                 babylonjsButton.addEventListener("click", () => {
-                    const canvas = BABYLON_RENDERER.run(false, false, false, numTrees, lod);
+                    const canvas = BABYLON_RENDERER.run(false, false, false, treePositions.length, lod, treePositions);
                     const renderer = document.getElementById("babylonjs-renderer");
                     renderer.appendChild(canvas);
                     BABYLON_RENDERER.resize();

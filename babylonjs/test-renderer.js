@@ -15,7 +15,7 @@ export function resize() {
     engine.resize();
 }
 
-export function run(showInspector = false, showLoadingDialogs = true, autoResize = true, numTrees = NaN, lod = NaN) {
+export function run(showInspector = false, showLoadingDialogs = true, autoResize = true, numTrees = NaN, lod = NaN, treePositions = []) {
     const canvas = document.createElement("canvas");
 
     engine = new Engine(canvas, true);
@@ -25,8 +25,8 @@ export function run(showInspector = false, showLoadingDialogs = true, autoResize
 
     //MeshBuilder.CreateBox("box", {});
 
-    const groundWidth = 20;
-    const groundHeight = 20;
+    const groundWidth = 3000;
+    const groundHeight = 3000;
 
     const heightTexture = new Texture("../assets/gesaeuse_height_medium.png");
 
@@ -51,7 +51,7 @@ export function run(showInspector = false, showLoadingDialogs = true, autoResize
         const lod2 = meshes[3];
         const lod3 = meshes[0]; // Billboard
 
-        const scale = 0.01;
+        const scale = 0.5;
         const scaleInv = 1 / scale;
         for (const mesh of parent.getChildMeshes()) {
             mesh.scaling = new Vector3(scale, scale, scale);
@@ -80,16 +80,25 @@ export function run(showInspector = false, showLoadingDialogs = true, autoResize
         mesh.isVisible = true;
 
         for (let i = 0; i < numTrees; ++i) {
-            //const instance = mesh.createInstance("spruce" + i);
+            let x, y, z;
+            if (i < treePositions.length) {
+                x = treePositions[i].x - groundWidth/2;
+                y = treePositions[i].y;
+                z = treePositions[i].z - groundHeight/2;
+            } else {
+                const x01 = Math.random();
+                const z01 = Math.random();
+                const y01 = 0;
 
-            const x01 = Math.random();
-            const z01 = Math.random();
-            const y01 = 0;//await heightTexture.readPixels(x01, z01, 1, 1)[0] / 255;
+                x = groundWidth/2 * (x01 * 2 - 1);
+                y = y01;
+                z = groundHeight/2 * (z01 * 2 - 1);
+            }
 
-            //const matrixTranslation = Matrix.Translation(groundWidth * (x01 * 2 - 1), 0, groundHeight * (z01 * 2 - 1));
-            //const matrixScaling = new Matrix.Scaling(scale, scale, scale);
-            //const matrix = matrixScaling.multiply(matrixTranslation);
-            const matrix = Matrix.Translation(groundWidth/2 * (x01 * 2 - 1) * scaleInv * 3, y01, groundHeight/2 * (z01 * 2 - 1) * scaleInv * 3); // TODO: Why *3?
+            x *= scaleInv * 3; // TODO: Why *3?
+            z *= scaleInv * 3; // TODO: Why *3?
+
+            const matrix = Matrix.Translation(x, y, z);
 
             //const index = lod3.thinInstanceAddSelf(matrix);
             matrices.push(matrix);

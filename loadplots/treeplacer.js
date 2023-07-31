@@ -35,7 +35,11 @@ export class TreePlacer {
     }
 
     sampleHeightInMeters(xInMeters, yInMeters) {
-        return this.minFloat(xInMeters / this.widthMeters, yInMeters / this.heightMeters);
+        return this.sampleHeightIn01(xInMeters / this.widthMeters, yInMeters / this.heightMeters);
+    }
+
+    sampleHeightIn01(x01, y01) {
+        return this.minFloat(x01, y01);
     }
 
     placeTreesForSingleYear(plotsSet, plotNumbers, year) {
@@ -61,7 +65,7 @@ export class TreePlacer {
                     
                     const x = Math.random();
                     const z = Math.random();
-                    const y = this.sampleHeightInMeters(x, z);
+                    const y = this.sampleHeightIn01(x, z);
 
                     positionsOutput.push({
                         x: x * this.widthMeters,
