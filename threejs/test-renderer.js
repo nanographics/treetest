@@ -29,6 +29,10 @@ export function resize() {
     renderer.setSize(canvas.parentNode.clientWidth, canvas.parentNode.clientHeight);
 };
 
+function asd() {
+
+}
+
 export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN, lod = NaN, treePositions = []) {
     canvas = document.createElement("canvas");
 
@@ -50,8 +54,8 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
     //const cube = new Mesh(geometry, material);
     //scene.add(cube);
 
-    const groundWidth = 3000;
-    const groundHeight = 3000;
+    const groundWidth = 2850;
+    const groundHeight = 2850;
     const groundElevationMin = 0;
     const groundElevationMax = 500;
 
@@ -88,8 +92,11 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
         const lod3 = children[0]; // Billboards
         const lods = [lod0, lod1, lod2, lod3];
 
-        const scale = 0.25;
-        const scaleInv = 1 / scale;
+        //const scale = 0.25;
+        var scale = gltf.scene.children[0].scale;
+        scale.multiplyScalar(0.5);
+        //const scale = 0.25;
+        //const scaleInv = 1 / scale;
 
         const originalMesh = lods[lod];
 
@@ -112,7 +119,7 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
             const y = (treePositions[i].y * (groundElevationMax - groundElevationMin)) + groundElevationMin;
             const z = treePositions[i].z - groundHeight/2;
             const matrixTranslation = new Matrix4().makeTranslation(x, y, z);
-            const matrixScale = new Matrix4().makeScale(scale, scale, scale);
+            const matrixScale = new Matrix4().makeScale(scale.x, scale.y, scale.z);
             const matrix = matrixScale.clone().premultiply(matrixTranslation);
             mesh.setMatrixAt(i, matrix);
         }

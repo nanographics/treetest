@@ -25,8 +25,8 @@ export function run(showInspector = false, showLoadingDialogs = true, autoResize
 
     //MeshBuilder.CreateBox("box", {});
 
-    const groundWidth = 3000;
-    const groundHeight = 3000;
+    const groundWidth = 2850;
+    const groundHeight = 2850;
     const groundElevationMin = 0;
     const groundElevationMax = 500;
 

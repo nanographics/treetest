@@ -47,6 +47,12 @@
     <p>See console for details</p>
 
     <p id="details">Loading...</p>
+
+    <label for="fname">Plot Number:</label>
+    <input type="number" id="populate-input" name="plotNumber"><br><br>
+    <button id="populate-button">Populate</button>
+
+
     <div id="renderers">
         <div id="threejs-renderer" class="renderer">
             <p>Three.js</p>
@@ -72,7 +78,6 @@
 
     <!-- Fast Blue Noise Generator - required for bluenoise.js -->
     <script src="https://cdn.jsdelivr.net/gh/kchapelier/fast-2d-poisson-disk-sampling@1.0.3/build/fast-poisson-disk-sampling.min.js"></script>
-
     <script type="module">
         import { Tree, Plot, PlotsSet } from './loadplots.js';
         import { TreePlacer } from './treeplacer.js';
@@ -85,11 +90,74 @@
 
         renderers.style.display = "none";
 
+
+
+        var minTrees = 99999999999999;
+        var maxTrees = 0;
+        var minTreesPlot;
+        var maxTreesPlot;
+        var numTreesPerH = 0;
+
+        function populateTrees(plots, treePlacer, year, numbersOfPlots)
+        {
+            const plotsForTreeGeneration = [
+                plots.plotYears.entries().next().value[1]
+            ];
+
+            //const year = plotsForTreeGeneration[0].entries().next().value[0];
+            //const plotNumbers = plotsForTreeGeneration.map(plot => plot.get(year).number);
+            //const year = minTreesPlot.year;
+            
+            //const plotNumbers = plotsForTreeGeneration.map(plot => minTreesPlot.number);
+            const plotNumbers = plotsForTreeGeneration.map(plot => numbersOfPlots);
+
+            let treePositions = treePlacer.placeTreesForSingleYear(plots, plotNumbers, year);
+
+            return treePositions;
+        }
+
         (async () => {
             const csv = await fetch("../data/Single_tree_data_WG1.csv").then(response => response.text());
             const plots = new PlotsSet(csv);
             console.log(plots);
 
+           
+			      
+			for (let [year, plotYears] of plots.plotYears) 
+            {
+                if(isNaN(year)) {
+                    continue;
+                }
+                console.log(year + " = " + plotYears);
+
+                const plot = plotYears.entries().next().value[1];
+
+                
+                for (let k = 0; k < plot.trees.length; k += 1) 
+                {
+                    const tree = plot.trees[k];
+                    if(tree.snag === 0) {
+                        numTreesPerH += tree.countPerHectare;
+                    }
+                    else {
+                        console.log("dead");
+                    }
+                    
+                }
+                //console.log("Plot number: " + plot.number + ", number of trees per h: " + numTreesPerH);
+                if(numTreesPerH < minTrees) {
+                    minTrees = numTreesPerH;
+                    minTreesPlot = plot;
+                }
+                if(numTreesPerH > maxTrees) {
+                    maxTrees = numTreesPerH;
+                    maxTreesPlot = plot;
+                }
+			}
+			
+			console.log("min Trees:" + minTrees * 900 + "plot" + minTreesPlot.number) ;
+            console.log("max Trees:" + maxTrees * 900 + "plot" + maxTreesPlot.number) ;
+ 
             let heightmap;
             let heightmapData;
             {
@@ -130,8 +198,8 @@
             }
             //console.log(heightmapData);
 
-            const widthMeters = 3000;
-            const heightMeters = 3000;
+            const widthMeters = 2850;
+            const heightMeters = 2850;
             const treePlacer = new TreePlacer(heightmapData, heightmap.width, heightmap.height, widthMeters, heightMeters);
             {
                 const heights = [];
@@ -142,21 +210,11 @@
                 console.log("Printing first 10 values of TreePlacer: " + heights.join(", "));
             }
 
+            const year = minTreesPlot.year;
             // Generate trees
-            let treePositions;
-            {
-                const plotsForTreeGeneration = [
-                    plots.plotYears.entries().next().value[1]
-                ];
-
-                const year =
-                    plotsForTreeGeneration[0].entries().next().value[0];
-
-                const plotNumbers = plotsForTreeGeneration.map(plot => plot.get(year).number);
-
-                treePositions = treePlacer.placeTreesForSingleYear(plots, plotNumbers, year);
-            }
-
+            //let treePositions = populateTrees(plots, treePlacer, year, minTreesPlot.number);
+            let treePositions = populateTrees(plots, treePlacer, year, 2682);
+            
             console.log("Tree positions generated: ", treePositions);
 
             // Activate UI
@@ -166,12 +224,13 @@
 
                 const numTrees = 10000;
                 const lod = 3;
+                var canvasThree;
 
                 const threejsButton = document.getElementById("threejs-button");
                 threejsButton.addEventListener("click", () => {
-                    const canvas = THREE_RENDERER.run(false, false, treePositions.length, lod, treePositions);
+                    canvasThree = THREE_RENDERER.run(false, false, treePositions.length, lod, treePositions);
                     const renderer = document.getElementById("threejs-renderer");
-                    renderer.appendChild(canvas);
+                    renderer.appendChild(canvasThree);
                     THREE_RENDERER.resize();
                     threejsButton.style.display = "none";
                 });
@@ -183,6 +242,23 @@
                     renderer.appendChild(canvas);
                     BABYLON_RENDERER.resize();
                     babylonjsButton.style.display = "none";
+                });
+
+                const populateButton = document.getElementById("populate-button");
+                populateButton.addEventListener("click", () => {
+                    const plotNumber = parseInt(document.getElementById("populate-input").value);
+                    if (plots.plotYears.has(plotNumber)) {
+
+                        let treePositionsNew = populateTrees(plots, treePlacer, year, plotNumber);
+                        details.textContent = "Generated " + treePositionsNew.length + " trees";
+                        const renderer = document.getElementById("threejs-renderer");
+                        renderer.removeChild(canvasThree);
+                        canvasThree = THREE_RENDERER.run(false, false, treePositionsNew.length, lod, treePositionsNew);
+                        renderer.appendChild(canvasThree);
+                        THREE_RENDERER.resize();
+                    } else{
+                        alert("Plot number does not exist!");
+                    }
                 });
             }
 
