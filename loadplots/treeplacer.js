@@ -44,6 +44,67 @@ export class TreePlacer {
         return this.minFloat(x01, y01);
     }
 
+    populateTrees(plots) 
+    {
+        console.assert(plots.length > 0, "No plots given");
+
+        const positionsOutput = [];
+        const treeInfoOutput = [];
+
+        console.log("Terrain area in hectares:", this.areaInHectares);
+
+        const plotWidth = this.widthMeters / plots.length;
+        
+        for (let i = 0; i < plots.length; i++) 
+        {
+            const plot = plots[i];
+            let totalTreeCount = 0;
+            for (const tree of plot.trees) 
+            {
+                let count = Math.round(tree.countPerHectare * this.areaInHectares / plots.length);
+                totalTreeCount += count;
+            }
+
+
+            const positions = bluenoise(plotWidth, this.heightMeters, totalTreeCount); 
+            
+            const treeCountMultiplier = positions.length / totalTreeCount;
+            if (treeCountMultiplier < 1) {
+                console.warn("Not enough space for all " + totalTreeCount + " trees. Reducing tree count by " + ((1 - treeCountMultiplier) * 100).toFixed(2) + "% to at most " + positions.length + " trees.");
+            } else if (treeCountMultiplier > 1) {
+                console.warn("More than enough space for all " + totalTreeCount + " trees. Increasing tree count by " + ((treeCountMultiplier - 1) * 100).toFixed(2) + "% to at most " + positions.length + " trees.");
+            }
+            
+            let positionIndex = 0;
+
+            for (const tree of plot.trees) 
+            {
+                const count = Math.floor( (tree.countPerHectare * this.areaInHectares / plots.length) * treeCountMultiplier);
+                for (let j = 0; j < count; j++) 
+                {
+                    const x = positions[positionIndex][0] + plotWidth * i;
+                    const z = positions[positionIndex][1];
+                    const y = this.sampleHeightInMeters(x, z);
+
+                    ++positionIndex;
+   
+                    positionsOutput.push({
+                        x: x,
+                        y: y,
+                        z: z
+                    });
+                    treeInfoOutput.push({
+                        treeHeight : tree.treeHeight,
+                        snag : tree.snag
+                    });
+                }
+
+            }
+        }
+        return [positionsOutput, treeInfoOutput];
+    }
+
+
     placeTreesForSingleYear(plotsSet, plotNumbers, year) {
         console.assert(plotNumbers.length > 0, "No plots given");
 

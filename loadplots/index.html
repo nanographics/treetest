@@ -49,7 +49,8 @@
     <p id="details">Loading...</p>
 
     <label for="fname">Plot Number:</label>
-    <input type="number" id="populate-input" name="plotNumber"><br><br>
+    <input type="number" id="populate-input0" name="plotNumber" value=2682><br><br>
+    <input type="number" id="populate-input1" name="plotNumber" value=2532><br><br>
     <button id="populate-button">Populate</button>
 
 
@@ -246,14 +247,27 @@
 
                 const populateButton = document.getElementById("populate-button");
                 populateButton.addEventListener("click", () => {
-                    const plotNumber = parseInt(document.getElementById("populate-input").value);
-                    if (plots.plotYears.has(plotNumber)) {
+                    const plotNumber0 = parseInt(document.getElementById("populate-input0").value);
+                    const plotNumber1 = parseInt(document.getElementById("populate-input1").value);
+                    if (plots.plotYears.has(plotNumber0) && plots.plotYears.has(plotNumber1)) 
+                    {
 
-                        let treePositionsNew = populateTrees(plots, treePlacer, year, plotNumber);
+                        const selectedPlots = [];
+                        let plots0 = plots.plotYears.get(plotNumber0);
+                        let plot0 = plots0.entries().next().value[1];
+                        let plots1 = plots.plotYears.get(plotNumber1);
+                        let plot1 = plots1.entries().next().value[1];
+
+                        selectedPlots.push(plot0);
+                        selectedPlots.push(plot1);
+                        
+                        let populationOutput = treePlacer.populateTrees(selectedPlots);
+                        let treePositionsNew = populationOutput[0];
+                        let treeInfoNew = populationOutput[1];
                         details.textContent = "Generated " + treePositionsNew.length + " trees";
                         const renderer = document.getElementById("threejs-renderer");
                         renderer.removeChild(canvasThree);
-                        canvasThree = THREE_RENDERER.run(false, false, treePositionsNew.length, lod, treePositionsNew);
+                        canvasThree = THREE_RENDERER.run(false, false, treePositionsNew.length, lod, treePositionsNew, treeInfoNew);
                         renderer.appendChild(canvasThree);
                         THREE_RENDERER.resize();
                     } else{

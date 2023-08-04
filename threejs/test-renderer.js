@@ -33,10 +33,12 @@ function asd() {
 
 }
 
-export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN, lod = NaN, treePositions = []) {
+export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN, lod = NaN, treePositions = [], treeInfo = []) {
     canvas = document.createElement("canvas");
 
     const scene = new Scene();
+
+    const isTreeInfoValid = treePositions.length === treeInfo.length;
 
     scene.background = new Color("skyblue");
 
@@ -93,8 +95,8 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
         const lods = [lod0, lod1, lod2, lod3];
 
         //const scale = 0.25;
-        var scale = gltf.scene.children[0].scale;
-        scale.multiplyScalar(0.5);
+        let treeModelScale = gltf.scene.children[0].scale;
+        //treeModelScale.multiplyScalar(0.5);
         //const scale = 0.25;
         //const scaleInv = 1 / scale;
 
@@ -112,12 +114,25 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
             const z = groundHeight/2 * (z01 * 2 - 1);
 
             treePositions.push({ x, y, z });
+            treeInfo.push({
+                treeHeight : 100,
+                snag : 0
+            });
         }
 
-        for (let i = 0; i < numTrees; ++i) {
+        for (let i = 0; i < numTrees; ++i) 
+        {
             const x = treePositions[i].x - groundWidth/2;
             const y = (treePositions[i].y * (groundElevationMax - groundElevationMin)) + groundElevationMin;
             const z = treePositions[i].z - groundHeight/2;
+            let scale = treeModelScale.clone();
+            if(isTreeInfoValid)
+            {
+                // assuming tree height is 20.8 meter (spruce tree model)
+                let scaleRatio = treeInfo[i].treeHeight / 20.8;
+                
+                scale.multiplyScalar(scaleRatio);
+            }
             const matrixTranslation = new Matrix4().makeTranslation(x, y, z);
             const matrixScale = new Matrix4().makeScale(scale.x, scale.y, scale.z);
             const matrix = matrixScale.clone().premultiply(matrixTranslation);
