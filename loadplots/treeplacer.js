@@ -13,7 +13,7 @@ export class TreePlacer {
     }
 
     // Gets a float value at the position (x,y) in the texture, with x and y in range [0,1]
-    float(x, y) {
+    readTexture(x, y) {
         x = Math.min(this.widthPixels - 1, Math.max(0, Math.floor(x * this.widthPixels - 0.5)));
         y = Math.min(this.heightPixels - 1, Math.max(0, Math.floor(y * this.heightPixels - 0.5)));
         const i = 4 * (x + this.widthPixels * y);
@@ -21,11 +21,19 @@ export class TreePlacer {
     }
     minFloat(x, y) {
         return Math.min(
-            this.float(x-this.ux/2, y-this.ux/2),
-            this.float(x+this.ux/2, y-this.uy/2),
-            this.float(x-this.ux/2, y+this.uy/2),
-            this.float(x+this.ux/2, y+this.uy/2)
+            this.readTexture(x-this.ux/2, y-this.ux/2),
+            this.readTexture(x+this.ux/2, y-this.uy/2),
+            this.readTexture(x-this.ux/2, y+this.uy/2),
+            this.readTexture(x+this.ux/2, y+this.uy/2)
         );
+    }
+    sampleTextureLinear(x, y) {
+        
+        const a = this.readTexture(x-this.ux/2, y-this.ux/2);
+        const b = this.readTexture(x+this.ux/2, y-this.uy/2);
+        const c = this.readTexture(x-this.ux/2, y+this.uy/2);
+        const d = this.readTexture(x+this.ux/2, y+this.uy/2);
+        return (a+b+c+d) / 4.0;
     }
 
     get areaInSquareMeters() {
@@ -37,11 +45,12 @@ export class TreePlacer {
     }
 
     sampleHeightInMeters(xInMeters, yInMeters) {
+
         return this.sampleHeightIn01(xInMeters / this.widthMeters, yInMeters / this.heightMeters);
     }
 
     sampleHeightIn01(x01, y01) {
-        return this.minFloat(x01, y01);
+        return this.sampleTextureLinear(x01, y01);
     }
 
     populateTrees(plots) 
@@ -94,6 +103,7 @@ export class TreePlacer {
                         z: z
                     });
                     treeInfoOutput.push({
+                        treeNr : tree.treeNr,
                         treeHeight : tree.treeHeight,
                         snag : tree.snag
                     });

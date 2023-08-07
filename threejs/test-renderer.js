@@ -3,6 +3,15 @@ import { GLTFLoader } from "https://unpkg.com/three@0.154.0/examples/jsm/loaders
 import { OrbitControls } from "https://unpkg.com/three@0.154.0/examples/jsm/controls/OrbitControls.js";
 import Stats from "https://unpkg.com/three@0.154.0/examples/jsm/libs/stats.module.js";
 
+class TreeInstance
+{
+    mesh;
+    meshIndex;
+    translation;
+    tree;
+    scale;
+}
+
 const Scene = THREE.Scene;
 const PerspectiveCamera = THREE.PerspectiveCamera;
 const BoxGeometry = THREE.BoxGeometry;
@@ -18,10 +27,13 @@ const TextureLoader = THREE.TextureLoader;
 const InstancedMesh = THREE.InstancedMesh;
 const Vector3 = THREE.Vector3;
 const Matrix4 = THREE.Matrix4;
+const clock = new Clock();
+const stats = new Stats();
 
 let camera;
 let canvas;
 let renderer;
+let treeInstances = [];
 
 export function resize() {
     camera.aspect = canvas.parentNode.clientWidth / canvas.parentNode.clientHeight;
@@ -29,8 +41,34 @@ export function resize() {
     renderer.setSize(canvas.parentNode.clientWidth, canvas.parentNode.clientHeight);
 };
 
-function asd() {
 
+function preRender(elapsed) 
+{
+    // animate trees
+    treeInstances.forEach(instance => {
+        const matrixTranslation = instance.translation;
+        instance.scale.multiplyScalar(1.005);
+        //console.log(instance.scale);
+        let matrix = new Matrix4().makeScale(instance.scale.x, instance.scale.y, instance.scale.z);
+        matrix.premultiply(matrixTranslation);
+        instance.mesh.setMatrixAt(instance.meshIndex, matrix);
+    });
+    if(treeInstances.length > 0) {
+        let matrix = new Matrix4();
+        treeInstances[0].mesh.getMatrixAt(0, matrix);
+        console.log(matrix);
+        treeInstances[0].mesh.instanceMatrix.needsUpdate = true;
+    }
+    
+}
+
+function render(elapsed, controls, scene, camera) 
+{
+    controls.update();
+
+    stats.begin();
+    renderer.render(scene, camera);
+    stats.end();
 }
 
 export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN, lod = NaN, treePositions = [], treeInfo = []) {
@@ -128,7 +166,7 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
             let scale = treeModelScale.clone();
             if(isTreeInfoValid)
             {
-                // assuming tree height is 20.8 meter (spruce tree model)
+                // assuming the height of the tree model is 20.8 meter (spruce tree model)
                 let scaleRatio = treeInfo[i].treeHeight / 20.8;
                 
                 scale.multiplyScalar(scaleRatio);
@@ -137,6 +175,13 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
             const matrixScale = new Matrix4().makeScale(scale.x, scale.y, scale.z);
             const matrix = matrixScale.clone().premultiply(matrixTranslation);
             mesh.setMatrixAt(i, matrix);
+
+            let treeinstance = new TreeInstance();
+            treeinstance.mesh = mesh;
+            treeinstance.translation = matrixTranslation;
+            treeinstance.meshIndex = i;
+            treeinstance.scale = scale;            
+            treeInstances.push(treeinstance);
         }
         scene.add(mesh);
     });
@@ -148,25 +193,15 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
     directionalLight.position.set(10, 10, 10);
     scene.add(directionalLight);
 
-    const clock = new Clock();
-
-    const stats = new Stats();
+    
     stats.showPanel(0);
     document.body.appendChild(stats.dom);
 
     renderer = new WebGLRenderer({ canvas });
     renderer.setAnimationLoop(() => {
-        const deltaTime = clock.getDelta();
-
-        controls.update();
-
-        //cube.rotation.x += (0.1 * deltaTime);
-        //cube.rotation.y += (0.2 * deltaTime);
-        //cube.rotation.z += (0.3 * deltaTime);
-
-        stats.begin();
-        renderer.render(scene, camera);
-        stats.end();
+        const elapsed = clock.getDelta();
+        preRender(elapsed);
+        render(elapsed, controls, scene, camera);
     });
 
     if (autoResize) window.addEventListener("resize", () => resize());

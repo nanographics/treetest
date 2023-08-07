@@ -205,7 +205,7 @@
             {
                 const heights = [];
                 for (let i = 0; i < 10; i++) {
-                    const height = treePlacer.float(i * treePlacer.ux + treePlacer.ux/2, treePlacer.uy/2);
+                    const height = treePlacer.sampleTextureLinear(i * treePlacer.ux + treePlacer.ux/2, treePlacer.uy/2);
                     heights.push(height);
                 }
                 console.log("Printing first 10 values of TreePlacer: " + heights.join(", "));
