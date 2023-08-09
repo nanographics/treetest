@@ -99,24 +99,6 @@
         var maxTreesPlot;
         var numTreesPerH = 0;
 
-        function populateTrees(plots, treePlacer, year, numbersOfPlots)
-        {
-            const plotsForTreeGeneration = [
-                plots.plotYears.entries().next().value[1]
-            ];
-
-            //const year = plotsForTreeGeneration[0].entries().next().value[0];
-            //const plotNumbers = plotsForTreeGeneration.map(plot => plot.get(year).number);
-            //const year = minTreesPlot.year;
-            
-            //const plotNumbers = plotsForTreeGeneration.map(plot => minTreesPlot.number);
-            const plotNumbers = plotsForTreeGeneration.map(plot => numbersOfPlots);
-
-            let treePositions = treePlacer.placeTreesForSingleYear(plots, plotNumbers, year);
-
-            return treePositions;
-        }
-
         (async () => {
             const csv = await fetch("../data/Single_tree_data_WG1.csv").then(response => response.text());
             const plots = new PlotsSet(csv);
@@ -208,15 +190,26 @@
                     const height = treePlacer.sampleTextureLinear(i * treePlacer.ux + treePlacer.ux/2, treePlacer.uy/2);
                     heights.push(height);
                 }
-                console.log("Printing first 10 values of TreePlacer: " + heights.join(", "));
+                //console.log("Printing first 10 values of TreePlacer: " + heights.join(", "));
             }
 
             const year = minTreesPlot.year;
-            // Generate trees
-            //let treePositions = populateTrees(plots, treePlacer, year, minTreesPlot.number);
-            let treePositions = populateTrees(plots, treePlacer, year, 2682);
+
+            const selectedPlots = [];
+            //let simulation0 = plots.plotYears.get(2682);
+            let simulation0 = plots.plotYears.get(2532);
             
-            console.log("Tree positions generated: ", treePositions);
+            let plot0 = simulation0.entries().next().value[1];
+            selectedPlots.push(plot0);
+            let populationOutput = treePlacer.populateTrees(selectedPlots);
+            let treePositions = populationOutput[0];
+            let treeInfo = populationOutput[1];
+            
+            let simulations = [];
+            simulations.push(simulation0);
+
+            
+            //console.log("Tree positions generated: ", treePositions);
 
             // Activate UI
             {
@@ -229,7 +222,8 @@
 
                 const threejsButton = document.getElementById("threejs-button");
                 threejsButton.addEventListener("click", () => {
-                    canvasThree = THREE_RENDERER.run(false, false, treePositions.length, lod, treePositions);
+                    THREE_RENDERER.setSimulations(simulations);
+                    canvasThree = THREE_RENDERER.run(false, false, treePositions.length, lod, treePositions, treeInfo);
                     const renderer = document.getElementById("threejs-renderer");
                     renderer.appendChild(canvasThree);
                     THREE_RENDERER.resize();

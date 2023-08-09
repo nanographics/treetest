@@ -8,7 +8,7 @@ class TreeInstance
     mesh;
     meshIndex;
     translation;
-    tree;
+    treeNr;
     scale;
 }
 
@@ -29,11 +29,17 @@ const Vector3 = THREE.Vector3;
 const Matrix4 = THREE.Matrix4;
 const clock = new Clock();
 const stats = new Stats();
+const treeModelHeight = 20.8;
 
 let camera;
 let canvas;
 let renderer;
 let treeInstances = [];
+let simulations = [];
+let simulationIterator;
+let currentPlot;
+
+let animationCounter = 0.0;
 
 export function resize() {
     camera.aspect = canvas.parentNode.clientWidth / canvas.parentNode.clientHeight;
@@ -42,21 +48,66 @@ export function resize() {
 };
 
 
+export function setSimulations(sims) {
+    simulations = sims;
+    simulationIterator =  simulations[0].entries();
+    currentPlot = simulationIterator.next().value[1];
+}
+
 function preRender(elapsed) 
 {
-    // animate trees
-    treeInstances.forEach(instance => {
-        const matrixTranslation = instance.translation;
-        instance.scale.multiplyScalar(1.005);
-        //console.log(instance.scale);
-        let matrix = new Matrix4().makeScale(instance.scale.x, instance.scale.y, instance.scale.z);
-        matrix.premultiply(matrixTranslation);
-        instance.mesh.setMatrixAt(instance.meshIndex, matrix);
-    });
+    // animate through the simulation years
+    animationCounter += elapsed;
+    const tick = 0.1;
+    if(animationCounter > tick) {
+        animationCounter -= tick;
+        const nextSim = simulationIterator.next();
+        if(!nextSim.done) {
+            console.log(nextSim.value[0]);
+            currentPlot = nextSim.value[1];
+            console.log(currentPlot.trees[0].treeHeight);
+
+            // update each instance over the simulation
+            treeInstances.forEach(instance => {
+                // todo: use map instead of array to avoid iterating
+                let tree;
+                let stillAlive = false;
+                let scale = instance.scale.clone();
+                for (let i = 0; i < currentPlot.trees.length; i++) 
+                {
+                    const plotTree = currentPlot.trees[i];
+                    if(plotTree.number == instance.treeNr) {
+                        tree = plotTree;     
+                        stillAlive = true;
+                        let scaleRatio = tree.treeHeight / treeModelHeight;
+                        scale.multiplyScalar(scaleRatio);
+                    }
+                }
+        
+                if (!stillAlive) {
+                    instance.scale.multiplyScalar(0.0);    
+                }
+                
+                const matrixTranslation = instance.translation;
+                //instance.scale.multiplyScalar(1.005);
+                //console.log(instance.scale);
+                let matrix = new Matrix4().makeScale(scale.x, scale.y, scale.z);
+                matrix.premultiply(matrixTranslation);
+                instance.mesh.setMatrixAt(instance.meshIndex, matrix);
+           });
+        } else { // start from beginning
+            simulationIterator =  simulations[0].entries();
+            currentPlot = simulationIterator.next().value[1];
+        }
+    }
+    
+        
+   
+
     if(treeInstances.length > 0) {
         let matrix = new Matrix4();
         treeInstances[0].mesh.getMatrixAt(0, matrix);
-        console.log(matrix);
+        //console.log(matrix);
         treeInstances[0].mesh.instanceMatrix.needsUpdate = true;
     }
     
@@ -153,6 +204,7 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
 
             treePositions.push({ x, y, z });
             treeInfo.push({
+                treeNr : -1,
                 treeHeight : 100,
                 snag : 0
             });
@@ -167,8 +219,7 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
             if(isTreeInfoValid)
             {
                 // assuming the height of the tree model is 20.8 meter (spruce tree model)
-                let scaleRatio = treeInfo[i].treeHeight / 20.8;
-                
+                let scaleRatio = treeInfo[i].treeHeight / treeModelHeight;
                 scale.multiplyScalar(scaleRatio);
             }
             const matrixTranslation = new Matrix4().makeTranslation(x, y, z);
@@ -179,8 +230,9 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
             let treeinstance = new TreeInstance();
             treeinstance.mesh = mesh;
             treeinstance.translation = matrixTranslation;
+            treeinstance.scale = treeModelScale;
             treeinstance.meshIndex = i;
-            treeinstance.scale = scale;            
+            treeinstance.treeNr = treeInfo[i].treeNr;
             treeInstances.push(treeinstance);
         }
         scene.add(mesh);

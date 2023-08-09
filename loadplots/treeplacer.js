@@ -103,7 +103,7 @@ export class TreePlacer {
                         z: z
                     });
                     treeInfoOutput.push({
-                        treeNr : tree.treeNr,
+                        treeNr : tree.number,
                         treeHeight : tree.treeHeight,
                         snag : tree.snag
                     });
