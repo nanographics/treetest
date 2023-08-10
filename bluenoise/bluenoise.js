@@ -4,6 +4,6 @@ export default function bluenoise(width, height, numPoints) {
     return new FastPoissonDiskSampling({
         shape: [width, height],
         radius: Math.sqrt(width * height / numPoints),
-        tries: 30,
+        tries: 50,
     }).fill();
 }

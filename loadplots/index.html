@@ -197,33 +197,41 @@
 
             const selectedPlots = [];
             //let simulation0 = plots.plotYears.get(2682);
-            let simulation0 = plots.plotYears.get(2532);
+            //let simulation0 = plots.plotYears.get(2532);
+            //let simulation0 = plots.plotYears.get(2678);
+            let simulation0 = plots.plotYears.get(2682);
             
             let plot0 = simulation0.entries().next().value[1];
             selectedPlots.push(plot0);
-            let populationOutput = treePlacer.populateTrees(selectedPlots);
-            let treePositions = populationOutput[0];
-            let treeInfo = populationOutput[1];
+            //let populationOutput = treePlacer.populateTrees(selectedPlots);
+            let populationOutput = treePlacer.populateTreesPreprocessing(simulation0);
+            //let treePositions = populationOutput[0];
+            //let treeInfo = populationOutput[1];
             
             let simulations = [];
             simulations.push(simulation0);
+            let numTrees = 0;
+            for (const [treeNr, positions] of populationOutput)
+            {
+                numTrees += positions.length;
+            }
 
             
             //console.log("Tree positions generated: ", treePositions);
 
             // Activate UI
             {
-                details.textContent = "Generated " + treePositions.length + " trees";
+                details.textContent = "Generated " + numTrees + " trees";
                 renderers.style.display = "";
 
-                const numTrees = 10000;
+                //const numTrees = 10000;
                 const lod = 3;
                 var canvasThree;
 
                 const threejsButton = document.getElementById("threejs-button");
                 threejsButton.addEventListener("click", () => {
                     THREE_RENDERER.setSimulations(simulations);
-                    canvasThree = THREE_RENDERER.run(false, false, treePositions.length, lod, treePositions, treeInfo);
+                    canvasThree = THREE_RENDERER.run(false, false, numTrees, lod, populationOutput);
                     const renderer = document.getElementById("threejs-renderer");
                     renderer.appendChild(canvasThree);
                     THREE_RENDERER.resize();
@@ -232,7 +240,7 @@
 
                 const babylonjsButton = document.getElementById("babylonjs-button");
                 babylonjsButton.addEventListener("click", () => {
-                    const canvas = BABYLON_RENDERER.run(false, false, false, treePositions.length, lod, treePositions);
+                    //const canvas = BABYLON_RENDERER.run(false, false, false, treePositions.length, lod, treePositions);
                     const renderer = document.getElementById("babylonjs-renderer");
                     renderer.appendChild(canvas);
                     BABYLON_RENDERER.resize();
@@ -261,7 +269,7 @@
                         details.textContent = "Generated " + treePositionsNew.length + " trees";
                         const renderer = document.getElementById("threejs-renderer");
                         renderer.removeChild(canvasThree);
-                        canvasThree = THREE_RENDERER.run(false, false, treePositionsNew.length, lod, treePositionsNew, treeInfoNew);
+                        //canvasThree = THREE_RENDERER.run(false, false, treePositionsNew.length, lod, treePositionsNew, treeInfoNew);
                         renderer.appendChild(canvasThree);
                         THREE_RENDERER.resize();
                     } else{

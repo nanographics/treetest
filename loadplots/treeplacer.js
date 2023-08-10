@@ -53,6 +53,82 @@ export class TreePlacer {
         return this.sampleTextureLinear(x01, y01);
     }
 
+    populateTreesPreprocessing(simulation) 
+    {
+        console.assert(simulation.size > 0, "No plots given");
+        console.log("Terrain area in hectares:", this.areaInHectares);
+
+        // maps treeNr to countPerHectare
+        const treeMap = new Map();
+
+        // calculate total number of required sample points for all tree in the whole simulation
+        for (const plot of simulation)
+        {
+            for (const tree of plot[1].trees)
+            {
+                if(treeMap.has(tree.number)) {
+                    if(tree.countPerHectare != treeMap.get(tree.number)) {
+                        console.assert(tree.countPerHectare != treeMap.get(tree.number), "N_rep_ha has changed");
+                    }
+                } else {
+                    treeMap.set(tree.number, tree.countPerHectare);
+                }
+                
+            }
+        }
+        
+        let totalTreeCount = 0;
+        
+        // iterate over all trees and calculate total number of required sample points
+        for (const [treeNr, countPerHectare] of treeMap)
+        {
+            totalTreeCount += Math.round(countPerHectare * this.areaInHectares);
+        }
+
+        // calculate potential positions for trees
+        const positions = bluenoise(this.widthMeters, this.heightMeters, totalTreeCount); 
+
+        const treeCountMultiplier = positions.length / totalTreeCount;
+        if (treeCountMultiplier < 1) {
+            console.warn("Not enough space for all " + totalTreeCount + " trees. Reducing tree count by " + ((1 - treeCountMultiplier) * 100).toFixed(2) + "% to at most " + positions.length + " trees.");
+        } else if (treeCountMultiplier > 1) {
+            console.warn("More than enough space for all " + totalTreeCount + " trees. Increasing tree count by " + ((treeCountMultiplier - 1) * 100).toFixed(2) + "% to at most " + positions.length + " trees.");
+        }                     
+        
+        let positionIndex = 0;
+        const plot = simulation.entries().next().value[1];
+
+        const groundWidth = 2850;
+        const groundHeight = 2850;
+        const groundElevationMin = 0;
+        const groundElevationMax = 500;
+        
+        const output = new Map();
+        for (const [treeNr, countPerHectare] of treeMap)
+        {
+            const treePositions = [];
+            const count = Math.floor( (countPerHectare * this.areaInHectares) * treeCountMultiplier);
+            for (let j = 0; j < count; j++) 
+            {
+                const x = positions[positionIndex][0] - groundWidth/2;
+                const z = positions[positionIndex][1] - groundHeight/2;
+                const y = (this.sampleHeightInMeters(x, z) * (groundElevationMax - groundElevationMin)) + groundElevationMin;
+
+                ++positionIndex;
+
+                treePositions.push({
+                    x: x,
+                    y: y,
+                    z: z
+                });
+                
+                output.set(treeNr, treePositions);
+            }
+        }
+        
+        return output;
+    }
+
     populateTrees(plots) 
     {
         console.assert(plots.length > 0, "No plots given");
