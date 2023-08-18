@@ -53,6 +53,24 @@ export class TreePlacer {
         return this.sampleTextureLinear(x01, y01);
     }
 
+    shuffle(array) {
+        let currentIndex = array.length,  randomIndex;
+      
+        // While there remain elements to shuffle.
+        while (currentIndex != 0) {
+      
+          // Pick a remaining element.
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex--;
+      
+          // And swap it with the current element.
+          [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex], array[currentIndex]];
+        }
+      
+        return array;
+      }
+
     populateTreesPreprocessing(simulation) 
     {
         console.assert(simulation.size > 0, "No plots given");
@@ -88,6 +106,8 @@ export class TreePlacer {
         // calculate potential positions for trees
         const positions = bluenoise(this.widthMeters, this.heightMeters, totalTreeCount); 
 
+        this.shuffle(positions);
+
         const treeCountMultiplier = positions.length / totalTreeCount;
         if (treeCountMultiplier < 1) {
             console.warn("Not enough space for all " + totalTreeCount + " trees. Reducing tree count by " + ((1 - treeCountMultiplier) * 100).toFixed(2) + "% to at most " + positions.length + " trees.");
@@ -112,7 +132,7 @@ export class TreePlacer {
             {
                 const x = positions[positionIndex][0] - groundWidth/2;
                 const z = positions[positionIndex][1] - groundHeight/2;
-                const y = (this.sampleHeightInMeters(x, z) * (groundElevationMax - groundElevationMin)) + groundElevationMin;
+                const y = (this.sampleHeightInMeters(positions[positionIndex][0], positions[positionIndex][1]) * (groundElevationMax - groundElevationMin)) + groundElevationMin;
 
                 ++positionIndex;
 

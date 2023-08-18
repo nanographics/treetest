@@ -57,6 +57,37 @@ export function setSimulations(sims) {
 
 let firstFrame = true;
 
+function setDebugColor(mesh, index, treeNr) {
+    let color = new THREE.Color(0xffffff);
+    if(treeNr === 0) {
+        color = new THREE.Color(0xffffff);
+    }
+    if(treeNr === 1) {
+        color = new THREE.Color(0xffffff);
+    }
+    if(treeNr === 2) {
+        color = new THREE.Color(0xffffff);
+    }
+    if(treeNr === 3) {
+        color = new THREE.Color(0x0040ff);
+    }
+    if(treeNr === 4) {
+        color = new THREE.Color(0xff8000);
+    }
+    if(treeNr === 5) {
+        color = new THREE.Color(0xf0f0f5);
+    }
+    if(treeNr === 6) {
+        color = new THREE.Color(0xffad33);
+    }
+    if(treeNr === 7) {
+        color = new THREE.Color(0xffffff);
+    }
+
+    mesh.setColorAt(index, color);
+}
+
+
 function preRender(elapsed) 
 {
     if(treeMeshes.size === 0) {
@@ -64,7 +95,7 @@ function preRender(elapsed)
     }
     // animate through the simulation years
     animationCounter += elapsed;
-    const tick = 5.0;
+    const tick = 0.1;
     if(animationCounter > tick) {
         animationCounter -= tick;
         const nextSim = simulationIterator.next();
@@ -80,6 +111,7 @@ function preRender(elapsed)
                 let isVisible = false;
                 let mesh = treeMeshes.get(treeNr);
                 let scale = mesh.originalScale.clone();
+                // todo: use map instead of array to avoid iterating
                 for (let i = 0; i < currentPlot.trees.length; i++) 
                 {
                     const tree = currentPlot.trees[i];
@@ -93,9 +125,11 @@ function preRender(elapsed)
                 }
 
                 if(!isVisible) {
+                    console.log("tree is invisible: " + treeNr);
                     mesh.visible = false;
                     continue;
                 } else {
+                    console.log("tree is visible: " + treeNr);
                     mesh.visible = true;
                 }
 
@@ -104,35 +138,9 @@ function preRender(elapsed)
                 {
                     const position = positions[i];
                     const matrixTranslation = new Matrix4().makeTranslation(position.x, position.y, position.z);
-                    let matrix = new Matrix4().makeScale(scale.x, scale.y, scale.z);
-                    matrix.premultiply(matrixTranslation);
-                    let color = new THREE.Color(0xffffff);
-                    if(treeNr === 0) {
-                        color = new THREE.Color(0xffffff);
-                    }
-                    if(treeNr === 1) {
-                        color = new THREE.Color(0xffffff);
-                    }
-                    if(treeNr === 2) {
-                        color = new THREE.Color(0xffffff);
-                    }
-                    if(treeNr === 3) {
-                        color = new THREE.Color(0x0040ff);
-                    }
-                    if(treeNr === 4) {
-                        color = new THREE.Color(0xff8000);
-                    }
-                    if(treeNr === 5) {
-                        color = new THREE.Color(0xf0f0f5);
-                    }
-                    if(treeNr === 6) {
-                        color = new THREE.Color(0xffad33);
-                    }
-                    if(treeNr === 7) {
-                        color = new THREE.Color(0xffffff);
-                    }
-
-                    mesh.setColorAt(i, color);
+                    const matrixScale = new Matrix4().makeScale(scale.x, scale.y, scale.z);
+                    const matrix = matrixTranslation.multiply(matrixScale);
+                    setDebugColor(mesh, i, treeNr);
                     mesh.setMatrixAt(i, matrix);
                 }
                 // inform three.js that we updated the instanced mesh
@@ -312,7 +320,25 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
         // iterate over all trees and create a mesh instance for each tree
         for (const [treeNr, positions] of treePositions)
         {
+            // todo: check if we should disabel depth write
+            originalMesh.material.depthWrite = false;
             const mesh = new InstancedMesh(originalMesh.geometry, originalMesh.material, positions.length);
+            
+            // check if tree is in first plot of the simulation and set visibility accordingly
+            let firstPlot = simulations[0].entries().next().value[1];
+            // todo: use map instead of array to avoid iterating over all trees
+            let isVisible = false;
+            for (let i = 0; i < firstPlot.trees.length; i++) 
+            {
+                const tree = firstPlot.trees[i];
+                if(tree.number === treeNr) // tree is found
+                {
+                    isVisible = tree.snag === 0;
+                    console.log("tree is visible: " + treeNr);
+                    break;
+                }
+            }
+            mesh.visible = isVisible;
             mesh.originalScale = treeModelScale;
             treeMeshes.set(treeNr, mesh);
             let i = 0;
@@ -325,6 +351,7 @@ export function run(showLoadingDialogs = true, autoResize = true, numTrees = NaN
                 const matrixTranslation = new Matrix4().makeTranslation(position.x, position.y, position.z);
                 const matrixScale = new Matrix4().makeScale(scale.x, scale.y, scale.z);
                 const matrix = matrixTranslation.multiply(matrixScale);
+                setDebugColor(mesh, i, treeNr);
                 mesh.setMatrixAt(i++, matrix);
             }
             scene.add(mesh);
